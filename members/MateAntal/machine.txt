@@ -1,0 +1,10 @@
+github_user: MateAntal
+laptop: Apple MacBook Air 13-inch M1 2020, macOS Sonoma 14.6.1
+date: 2026-10-27 11:00 UTC
+cpus_in_container: 8
+architecture: aarch64
+cpu: Apple - 
+kernel: 7.0.12-linuxkit
+docker_memory_kb: 4010356
+container_memory_limit: 2147483648
+container_swap_limit: 0
