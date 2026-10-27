@@ -1,0 +1,10 @@
+github_user: amoumenieu2024-arch
+laptop: Lenovo 83K1, Windows 11
+date: 2026-10-27 11:05 UTC
+cpus_in_container: 12
+architecture: x86_64
+cpu: GenuineIntel 13th Gen Intel(R) Core(TM) i5-13420H 
+kernel: 6.18.33.2-microsoft-standard-WSL2
+docker_memory_kb: 6066828
+container_memory_limit: 2147483648
+container_swap_limit: 0
