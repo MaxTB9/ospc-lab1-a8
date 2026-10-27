@@ -1,0 +1,10 @@
+github_user: MateAntal
+laptop: Apple MacBook Air 13-inch M2 2022, macOS 15.1
+date: 2026-10-27 10:57 UTC
+cpus_in_container: 8
+architecture: aarch64
+cpu: Apple - 
+kernel: 7.0.12-linuxkit
+docker_memory_kb: 4010356
+container_memory_limit: 2147483648
+container_swap_limit: 0
