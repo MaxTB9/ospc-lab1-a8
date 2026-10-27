@@ -1,0 +1,10 @@
+github_user: zraoieu2024-web
+laptop: Apple MacBook Pro 14-inch M5, macOS Golden Gate 27.0.1
+date: 2026-10-27 10:46 UTC
+cpus_in_container: 10
+architecture: aarch64
+cpu: Apple - 
+kernel: 7.0.12-linuxkit
+docker_memory_kb: 8124516
+container_memory_limit: 2147483648
+container_swap_limit: 0
