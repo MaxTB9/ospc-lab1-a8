@@ -1,0 +1,10 @@
+github_user: JorbenaN
+laptop: Apple MacBook Pro 16-inch M4 Pro 2024, macOS 27.0.1
+date: 2026-10-27 11:17 UTC
+cpus_in_container: 8
+architecture: aarch64
+cpu: Apple - 
+kernel: 7.0.12-linuxkit
+docker_memory_kb: 8124776
+container_memory_limit: 2147483648
+container_swap_limit: 0
