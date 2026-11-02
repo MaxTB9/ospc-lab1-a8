@@ -44,6 +44,8 @@ oom_kill is 4
 
 - Cause: report.py gets killed by the OOM killer
 
+- Fix: The file is oly loaded once and only the columns that are used are loaded. The datatypes for these columns are also given; therefore, they take up less memory and the OOM killer doesn't kill the program.
+
 - Before and after (your measurements):
 
 Before:
