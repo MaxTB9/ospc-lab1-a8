@@ -227,3 +227,5 @@ understand what we gotta do" and "help me do them", and Claude Code chose and
 ran the commands. The generated code has a note before it. Teammates add their
 own note here: the sentence that said that no AI was used in this assignment was
 removed, because it was not true for these parts.
+
+- Zhenyang Rao - I used Claude to understand git, GitHub and the lab steps, and to review my pushes before submitting. Prompts were of the form "is this correct" and "tell me what's wrong here". I ran every command and the worker sweep myself on my own laptop.
