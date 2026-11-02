@@ -60,6 +60,9 @@ With 2 million orders:
 With 4 million orders:
 15.33 s elapsed, 12.36 s user, 3.18 s system, 1570440 KB peak memory
 
+After:
+13.50 s elapsed, 10.26 s user, 3.10 s system, 1289476 KB peak memory
+
 ## Task 2: Extracting data
 
 (Fix and text by Mate Antal, explained by Claude)
