@@ -94,7 +94,7 @@ After:
 
   Commands used for the optimized version:
 
-  bash
+  ```bash
   /usr/bin/time -v -o /tmp/audit_before.txt python3 steps/audit.py
   strace -c -f -o /tmp/audit_strace.txt python3 steps/audit.py
   python3 tools/check.py
