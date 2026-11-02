@@ -1,6 +1,8 @@
 #!/bin/bash
 # One file per region for the regional managers, with the columns
 # order_id, order_date, product_category, quantity, unit_price.
+# GenAI: fix drafted with Claude (Anthropic) by Mate Antal; prompt: "how do I fix
+# extracts.sh so it reads the right file and stops on errors?" Reviewed and tested.
 set -euo pipefail
 
 DATA=${DATA:-$HOME/data/sales_2025.csv}
