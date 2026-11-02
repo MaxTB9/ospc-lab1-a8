@@ -62,7 +62,16 @@ Memory growth, `report.py` on the first N orders:
 
 ## 5.4 Task 3: audit.py
 
-(to add)
+| Run | Elapsed | User | System | Peak memory |
+|---|---|---|---|---|
+| Sample, 100,000 orders | 1.32 s | 1.59 s | 0.33 s | 127,364 KB |
+| Full, 8,400,000 orders | 79.95 s | 60.03 s | 20.50 s | 635,136 KB |
+
+- `strace -c -e trace=openat,write,close` on the sample: openat 100,686, write 100,001, close 100,673 (301,360 calls in total) for a 1,952,269-byte file.
+- About one open, write and close per order: the file is reopened and closed for every line, so Python's buffer never helps.
+- Kernel share on the full file: 20.50 / (60.03 + 20.50) ≈ 25%, against about 9% for report.py.
+- Closing does not save to disk: write() only copies data to the page cache; fsync() would force it to disk.
+- With one open file and a 128 KiB buffer: about 1,952,269 / 131,072 ≈ 15 write calls on the sample.
 
 ---
 Measurements taken by me on my laptop. Used Claude to understand concepts and results.
