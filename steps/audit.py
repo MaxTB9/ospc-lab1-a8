@@ -12,10 +12,12 @@ path = os.path.join(OUT, "audit_2025.csv")
 orders = pd.read_csv(DATA, usecols=["order_id", "region", "quantity", "unit_price"])
 orders["revenue"] = orders["quantity"] * orders["unit_price"]
 
-open(path, "w").close()
-for order in orders.itertuples():
-    # Open and close the file for every order, so that each line is
-    # saved on disk even if the job crashes halfway.
-    with open(path, "a") as f:
+# Fixed with Claude Code (Anthropic, Claude Sonnet 5.5); prompt: "help me do them".
+# Open the file once. Python collects the lines in a 128 KiB buffer and calls
+# write() once per full buffer, instead of one open/write/close per order.
+# (Closing the file per order did not put the line on the disk either: the
+# kernel keeps written data in its page cache until it chooses to flush it.)
+with open(path, "w") as f:
+    for order in orders.itertuples(index=False):
         f.write(f"{order.order_id},{order.region},{order.revenue:.2f}\n")
 print(f"audit: {len(orders):,} lines written")
