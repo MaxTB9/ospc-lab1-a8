@@ -86,10 +86,35 @@ With 4 million orders:
 
 - Symptom: `audit.py` takes 40.7 s on the whole file, against 9.5 s after the
   fix, and its time is not only in its own code: 11.2 s of it is system time.
-- Commands and recordings you used, why you chose them, and what they showed:
-- Cause:
-- Fix:
-- Before and after (your measurements):
+
+- Commands and recordings: We used `/usr/bin/time -v` to measure elapsed time, user CPU time, system CPU time, and peak memory. We used `strace -c -f` to examine the number and types of system calls.
+
+  Commands used for the optimized version:
+
+  bash
+  /usr/bin/time -v -o /tmp/audit_before.txt python3 steps/audit.py
+  strace -c -f -o /tmp/audit_strace.txt python3 steps/audit.py
+  python3 tools/check.py
+  ```
+
+- Cause: The original implementation repeatedly opened and closed the audit output file while processing individual orders. This produced excessive file-related operations and unnecessary system calls.
+
+- Fix: The optimized implementation opens the output file once with `with open(path, "w") as f:`, writes the records using buffered output, and closes the file after processing. This reduces file-opening overhead and the number of system calls.
+
+- Before and after measurements:
+
+  | Metric | Before | After (Abdelaziz's run) |
+  |---|---|---|
+  | Elapsed time | 40.7 s | 20.05 s |
+  | User CPU time | Not recorded here | 19.24 s |
+  | System CPU time | Approximately 11.2 s | 1.29 s |
+  | Peak memory | Not recorded here | 635,128 KB |
+  | Total system calls | Not recorded here | 11,536 |
+  | `write()` system calls | Not recorded here | 1,470 |
+
+- **Validation:** `python3 tools/check.py` returned PASS for `audit_2025.csv`, confirming that all 8,400,000 expected records were produced.
+
+The after measurements were collected on Abdelaziz's machine. Original-version measurements for the missing metrics are still needed for a complete comparison, and results from different machines should not be treated as a controlled speedup measurement.
 
 ## Task 4: Segmenting the orders
 
