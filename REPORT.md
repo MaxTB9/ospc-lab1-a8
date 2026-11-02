@@ -202,12 +202,14 @@ this was written: JorbenaN and MateAntal):
   and the elapsed time hardly improves. At 16 workers on either
   laptop the processes outnumber the CPUs, so they take turns (more system time,
   more user time) and the step is slightly slower.
-  MaxTB9's desktop (AMD Ryzen 9 9950X, 16 cores, 32 threads, 32 CPUs in the
-  container): median elapsed time of 30.27, 21.15, 11.73, 7.64 and 5.52 s with 1,
-  2, 4, 8 and 16 workers. Unlike the two laptops above it is still getting faster
-  at 16 workers (5.5 times faster than 1 worker), because 16 workers do not
-  outnumber its 32 CPUs. System time still grows with the workers, from 9.94 s to
-  36.98 s.
+  MaxTB9: Adding workers cuts down on the task’s time, and using 16 makes it 5.48
+  times faster than 1 worker (30.27 s to 5.52 s). It is not ideal though, because
+  it does not reach the 1.9 s that 16 workers would take if the speed up was to be
+  perfect. System time grows from 9.94 s to 36.98 s, so the kernel has more work to
+  do to run the extra workers. On the laptops with 8 CPUs in the container, 16
+  workers also have to take turns. My desktop has 16 cores and 32 threads, so its
+  container has 32 CPUs and 16 workers don’t need to take turns at all. We could try
+  even more workers, up to 32, but we did not do that with the sweep.
 - Which default number of workers did you choose for `stats.sh`, and why? The
   number of CPUs that `nproc` reports (8 in the course container): more workers
   than CPUs cannot go faster, as the sweep shows, and it adapts to a laptop with
@@ -236,4 +238,4 @@ removed, because it was not true for these parts.
 
 - Zhenyang Rao - I used Claude to understand git, GitHub and the lab steps, and to review my pushes before submitting. Prompts were of the form "is this correct" and "tell me what's wrong here". I ran every command and the worker sweep myself on my own laptop.
 
-- Maximiliano Biatturi - I used Claude Code (Anthropic, model Claude Opus 5.5) as a tutor for parts of the lab. Prompts were of the form "explain what SIGKILL is" and "why is kib 1024 and not 1000?". I ran the commands and measured the numbers in `members/MaxTB9/measurements.md` myself on my desktop, and Claude drafted that file from my terminal output and regenerated `machine.txt`. An earlier version of `measurements.md` (27 October) held numbers from Claude's runs on my laptop; these numbers (done on my desktop) replace them. My fixes stayed on a local branch; the fixes on `main` are my teammates'.
+- Maximiliano Biatturi - I used Claude Code (Anthropic, model Claude Opus 5.5) as a tutor for parts of the lab. Prompts were of the form "explain what SIGKILL is" and "what is echo". I also asked Google Gemini in Chrome "why is kib 1024 and not 1000?". I ran the commands and measured the numbers in `members/MaxTB9/measurements.md` myself on my desktop, and Claude drafted that file from my terminal output and regenerated `machine.txt`. An earlier version of `measurements.md` (27 October) held numbers from Claude's runs on my laptop; these numbers (done on my desktop) replace them. Claude checked and corrected my paragraph on the worker experiment. My fixes stayed on a local branch; the fixes on `main` are my teammates'.
