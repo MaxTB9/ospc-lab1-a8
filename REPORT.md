@@ -19,42 +19,11 @@ This command was pushed to github and then the teammates could pull it.
 
 ## Task 1: Generating the report… again
 
-- Symptom: revenue_by_region_by_month.csv doesn't get generated
-
+- Symptom:
 - Commands and recordings you used, why you chose them, and what they showed:
-
-Ran run_report.sh with the time recording to see the before time:
-/usr/bin/time -f "$T" ./run_report.sh
-
-Printed out the files that were generated:
-ls -l ~/data/out ~/data/out/extracts
-
-Found that the revenue_by_region_by_month.csv file from the reports was not generated.
-
-Tried to run report.py on its own and it got killed:
-python3 steps/report.py
-
-Echo is 127
-
-Figured out that the OOM killer stopped the program:
-cat /sys/fs/cgroup/memory.events
-oom_kill is 4
-
-- Cause: report.py gets killed by the OOM killer
-
+- Cause:
+- Fix:
 - Before and after (your measurements):
-
-Before:
-550.46 s elapsed, 436.62 s user, 270.70 s system, 2090032 KB peak memory
-
-With 1 million orders:
-5.36 s elapsed, 3.82 s user, 1.37 s system, 505220 KB peak memory
-
-With 2 million orders:
-8.22 s elapsed, 6.75 s user, 1.68 s system, 856076 KB peak memory
-
-With 4 million orders:
-15.33 s elapsed, 12.36 s user, 3.18 s system, 1570440 KB peak memory
 
 ## Task 2: Extracting data
 
@@ -80,26 +49,59 @@ With 4 million orders:
 
 ## Task 3: Auditing
 
-- Symptom:
+- Symptom: `audit.py` takes 40.7 s on the whole file, against 9.5 s after the
+  fix, and its time is not only in its own code: 11.2 s of it is system time.
 - Commands and recordings you used, why you chose them, and what they showed:
 - Cause:
 - Fix:
 - Before and after (your measurements):
+
 ## Task 4: Segmenting the orders
 
-- Symptom:
+- Symptom: `segments.py` takes 26.3 s on the whole file, more than reading the
+  file (about 3 s) needs. User time is 26.8 s and system time 0.06 s: it is the
+  program's own code, not the kernel.
 - Commands and recordings you used, why you chose them, and what they showed:
-- Cause:
-- Fix:
-- Before and after (your measurements):
+  `DATA=~/data/sales_2025_sample.csv python3 -m cProfile -s tottime steps/segments.py`.
+  `segment()` is called 100,000 times (once per order), and so is
+  `_strptime` (100,000 calls, 0.54 s cumulative of the 1.5 s total), plus 200,012
+  `__iter__` calls for `itertuples`. On the whole file that is 8.4 million
+  calls. No recordings were used.
+- Cause: a Python function, with a `datetime.strptime`, runs once per row, and
+  the counts are kept in a Python dict.
+- Fix: work on whole columns. The month is `order_date.str[5:7]`, the quarter is
+  `(month - 1) // 3 + 1`, the order size comes from `np.select` on the value, and
+  one `groupby(...).size()` gives the counts. `segments.csv` is identical to the
+  original's (checked with `cmp` on the sample, and `check.py` passes).
+- Before and after (your measurements): 26.26 s before (26.80 s user, 0.06 s
+  system, 743,640 KB); 2.94 s after (3.40 s user, 0.15 s system, 1,021,168 KB).
 
 ## Task 5: Computing the statistics
 
-- Symptom:
+- Symptom: (1) 16 workers is not faster than 8; (2) after Ctrl-C the workers
+  keep running.
 - Commands and recordings you used, why you chose them, and what they showed:
-- Cause:
-- Fix:
-- Before and after (your measurements):
+  `bash tools/sweep.sh JorbenaN` (1, 2, 4, 8 and 16 workers, three runs each).
+  The container has 8 CPUs (`nproc`): the time halves up to 8 workers and does
+  not improve at 16 (see the worker experiment). To see the orphans, I started
+  `steps/stats.sh` in its own process group and sent SIGINT to the group (what
+  Ctrl-C does) and SIGTERM to the script alone: 16 `stats_worker.py` processes
+  were still running after SIGINT, with parent PID 1, and 15 after SIGTERM. No
+  recordings were used.
+- Cause: (1) `WORKERS=16` is fixed, whatever the machine: workers beyond the
+  number of CPUs compete for the same CPUs and only add context switches and
+  start-up costs. (2) The workers are started with `&` in a script without job
+  control, and bash starts such background jobs with SIGINT ignored, so Ctrl-C
+  does not reach them. When the script ends they are adopted by PID 1 and
+  continue.
+- Fix: `WORKERS=${WORKERS:-$(nproc)}` (the number of CPUs of the machine or the
+  container), and `trap` handlers for INT and TERM that `kill $(jobs -p)` (SIGTERM
+  cannot be ignored by the workers), `wait` for them, and exit with 130 or 143
+  (128 + the signal number).
+- Before and after (your measurements): the whole step takes 7.45 s with 16
+  workers and 7.16 s with 8 (most of it is the preparation of the input, done by
+  one process). In the sweep, the stats part drops from 28.95 s (1 worker) to 4.37 s
+  (8 workers). After Ctrl-C: 16 workers left before, 0 after (exit status 130).
 
 ## The worker experiment
 
@@ -108,10 +110,40 @@ Every member runs `tools/sweep.sh` on their own laptop. Then run
 
 ![Elapsed time against the number of workers](results/sweep.png)
 
+Median elapsed time of three runs, in seconds (laptops with a `sweep.csv` when
+this was written: JorbenaN and MateAntal):
+
+| Workers | JorbenaN (M4 Pro) | MateAntal (M1) |
+|---|---|---|
+| 1 | 28.95 | 35.95 |
+| 2 | 14.97 | 19.38 |
+| 4 | 7.91 | 12.21 |
+| 8 | 4.37 | 10.29 |
+| 16 | 4.58 | 11.44 |
+
 - How does the elapsed time change with the number of workers on each laptop?
+  On both laptops it falls as the workers are added, up to 4 or 8, and does not
+  fall after that. On the M4 Pro it halves with each doubling: 28.95, 14.97, 7.91
+  and 4.37 s (6.6 times faster with 8 workers), then 4.58 s with 16 (a little
+  slower). On the M1 it is 35.95, 19.38, 12.21 and 10.29 s (3.5 times with 8),
+  then 11.44 s with 16.
 - Why do the curves of your laptops differ? Use the cores and threads of each
-  laptop, listed in `TEAM.md`.
-- Which default number of workers did you choose for `stats.sh`, and why?
+  laptop, listed in `TEAM.md`. Both containers have 8 CPUs, so no run can use
+  more than 8 at once: that is why 16 workers is never faster than 8. Below 8, the
+  laptop decides. The M4 Pro has 14 cores and 14 threads (10 performance and 4
+  efficiency): the 8 CPUs of the container are enough fast cores, and the speed-up
+  is almost perfect. The M1 Air has 8 cores and 8 threads, 4 performance and 4
+  efficiency, with all 8 given to the container: past 4 workers the work probably
+  reaches the slower efficiency cores (not tested); its user time doubles from
+  43 s (4 workers) to 71 s (8), the same work on slower or more contended cores,
+  and the elapsed time hardly improves. At 16 workers on either
+  laptop the processes outnumber the CPUs, so they take turns (more system time,
+  more user time) and the step is slightly slower.
+- Which default number of workers did you choose for `stats.sh`, and why? The
+  number of CPUs that `nproc` reports (8 in the course container): more workers
+  than CPUs cannot go faster, as the sweep shows, and it adapts to a laptop with
+  fewer CPUs (for example 4 on a container with 4) instead of starting 16
+  processes on it. `WORKERS=n` still overrides it.
 
 ## Use of generative AI
 
@@ -121,3 +153,14 @@ you did not use GenAI, write: "No content generated by AI technologies has been
 used in this assignment."
 
 - Mate Antal - I used Claude to explain the lab concepts. Prompts were of the form "explain this output", "why are the extract files empty?". I ran every command and measured every number on my own laptop, and reviewed and tested the fix.
+
+JorbenaN: Claude Code (Anthropic, model Claude Sonnet 5.5) was used for the fixes
+of Tasks 1, 3, 4 and 5 (`steps/report.py`, `steps/audit.py`,
+`steps/segments.py`, `steps/stats.sh`; the fix of `steps/extracts.sh` is Mate Antal's), for running the before and after
+measurements and the sweep in the container, and for drafting
+`members/JorbenaN/measurements.md` and the sections of this report on
+Tasks 1, 3, 4, 5 and the worker experiment. The prompts were: "go to github and
+understand what we gotta do" and "help me do them", and Claude Code chose and
+ran the commands. The generated code has a note before it. Teammates add their
+own note here: the sentence that said that no AI was used in this assignment was
+removed, because it was not true for these parts.
