@@ -1,10 +1,10 @@
 github_user: MaxTB9
-laptop: Lenovo 83HM, Windows 11 Home
-date: 2026-10-27 10:40 UTC
-cpus_in_container: 8
+laptop: MSI MS-7E59 desktop, Windows 11 Pro
+date: 2026-11-02 16:14 UTC
+cpus_in_container: 32
 architecture: x86_64
-cpu: GenuineIntel Intel(R) Core(TM) Ultra 7 258V 
+cpu: AuthenticAMD AMD Ryzen 9 9950X 16-Core Processor 
 kernel: 6.18.33.2-microsoft-standard-WSL2
-docker_memory_kb: 16141940
+docker_memory_kb: 31524568
 container_memory_limit: 2147483648
 container_swap_limit: 0
