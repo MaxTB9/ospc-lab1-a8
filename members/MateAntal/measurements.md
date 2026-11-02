@@ -55,11 +55,14 @@ Memory growth, `report.py` on the first N orders:
 
 ## 5.3 Task 2: extracts.sh
 
-(to add)
+- `bash steps/extracts.sh; echo $?` → prints `extracts: done`, exit status **0**, but all six `extracts/*.csv` are 0 bytes.
+- From `~/data/out/extracts`: `grep ",Iberia," ../data/sales_2025.csv | cut ... | wc -l` → `grep: ../data/sales_2025.csv: No such file or directory`, count 0.
+- `echo ${PIPESTATUS[@]}` → `2 0 0` (grep 2 = error; cut and wc 0). `pwd` → `/home/analyst/data/out/extracts`.
+- The relative path resolves to `~/data/out/data/sales_2025.csv`, which does not exist. `2>/dev/null` hid grep's error; the pipeline and script both reported the last command's status (0).
 
 ## 5.4 Task 3: audit.py
 
 (to add)
 
 ---
-Measurements taken by me on my laptop. Used Claude to understnad concepts and resutls.
+Measurements taken by me on my laptop. Used Claude to understand concepts and results.
