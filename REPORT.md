@@ -19,11 +19,44 @@ This command was pushed to github and then the teammates could pull it.
 
 ## Task 1: Generating the report… again
 
-- Symptom:
+(fix and text by Renáta Kovács)
+
+- Symptom: revenue_by_region_by_month.csv doesn't get generated
+
 - Commands and recordings you used, why you chose them, and what they showed:
-- Cause:
-- Fix:
+
+Ran run_report.sh with the time recording to see the before time:
+/usr/bin/time -f "$T" ./run_report.sh
+
+Printed out the files that were generated:
+ls -l ~/data/out ~/data/out/extracts
+
+Found that the revenue_by_region_by_month.csv file from the reports was not generated.
+
+Tried to run report.py on its own and it got killed:
+python3 steps/report.py
+
+Echo is 127
+
+Figured out that the OOM killer stopped the program:
+cat /sys/fs/cgroup/memory.events
+oom_kill is 4
+
+- Cause: report.py gets killed by the OOM killer
+
 - Before and after (your measurements):
+
+Before:
+550.46 s elapsed, 436.62 s user, 270.70 s system, 2090032 KB peak memory
+
+With 1 million orders:
+5.36 s elapsed, 3.82 s user, 1.37 s system, 505220 KB peak memory
+
+With 2 million orders:
+8.22 s elapsed, 6.75 s user, 1.68 s system, 856076 KB peak memory
+
+With 4 million orders:
+15.33 s elapsed, 12.36 s user, 3.18 s system, 1570440 KB peak memory
 
 ## Task 2: Extracting data
 
