@@ -40,3 +40,19 @@ audit: 100,000 lines written
  28.93    4.706086          46    100677           close
 ------ ----------- ----------- --------- --------- ----------------
 100.00   16.268279          53    301367        17 total
+
+## Task 4
+
+Before:
+126.05 s elapsed, 124.46 s user, 1.75 s system, 727456 KB peak memory
+
+After:
+13.38 s elapsed, 10.17 s user, 3.41 s system, 1022428 KB peak memory
+
+## Task 5
+
+Before:
+53.39 s elapsed, 114.82 s user, 93.48 s system, 111784 KB peak memory
+
+After:
+45.86 s elapsed, 98.28 s user, 66.34 s system, 111804 KB peak memory
