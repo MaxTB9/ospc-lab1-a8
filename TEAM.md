@@ -21,4 +21,4 @@ Where to find each detail (Section 3 of the handout has the same table):
 | Renáta Kovács | @rkovacs05 | LENOVO, Windows 11 Pro | 8 cores, 16 threads (AMD Ryzen 7) | 4 |
 | Zhenyang Rao | @zraoieu2024-web | Apple MacBook Pro 14-inch M5, macOS Golden Gate 27.0.1 | 10 cores, 10 threads (Apple M5: 4 super + 6 efficiency) | 10 |
 | Abdelaziz Moumen | @amoumenieu2024-arch | Lenovo 83K1, Windows 11 | 8 cores, 12 threads (Intel Core i5-13420H) | 12 |
-| Nikolozi Jorbenadze | @JorbenaN | Apple MacBook Pro 16-inch M4 Pro 2024, macOS 27.0.1 | 14 cores, 14 threads (Apple M4 Pro: 10 performance + 4 efficiency) | 12 |
+| Nikolozi Jorbenadze | @JorbenaN | Apple MacBook Pro 16-inch M4 Pro 2024, macOS 27.0.1 | 14 cores, 14 threads (Apple M4 Pro: 10 performance + 4 efficiency) | 8 |
