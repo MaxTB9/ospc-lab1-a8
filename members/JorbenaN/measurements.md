@@ -1,8 +1,11 @@
 # Measurements of JorbenaN
 
 Apple MacBook Pro 16-inch M4 Pro 2024 (14 cores, 14 threads), macOS 27.0.1.
-Container: 8 CPUs (`nproc`), memory limit 2 GiB (`memory.max` = 2147483648), no swap.
-Measured on 2 November 2026. The commands were run through Claude Code (see
+Container: memory limit 2 GiB (`memory.max` = 2147483648), no swap. 8 CPUs
+(`nproc`) when I measured Tasks 1 to 5 on 2 November 2026; on 3 November I raised
+the Docker limit to 12 CPUs and reran only the worker sweep (see the last
+section). The other tasks run in one process, so their numbers do not depend on
+the CPU count. The commands were run through Claude Code (see
 "Use of generative AI" in `REPORT.md`), each one in a fresh container started
 with `docker compose run --rm lab1`, so the `oom_kill` counter starts at 0.
 
@@ -119,3 +122,21 @@ cd ~ && /usr/bin/time -f "$T" work/ospc-lab1-a8/run_report.sh
 ```
 
 `python3 tools/check.py`: PASS for every output.
+
+## Worker sweep (`bash tools/sweep.sh JorbenaN`)
+
+Median of three runs, in seconds. `members/JorbenaN/sweep.csv` holds the 12-CPU
+runs of 3 November.
+
+| Workers | 8 CPUs (2 Nov) | 12 CPUs (3 Nov) | User, 12 CPUs | System, 12 CPUs |
+|---|---|---|---|---|
+| 1 | 28.95 | 29.05 | 30.42 s | 0.55 s |
+| 2 | 14.97 | 15.03 | 30.97 s | 0.68 s |
+| 4 | 7.91 | 8.01 | 31.85 s | 0.76 s |
+| 8 | 4.37 | 4.46 | 32.70 s | 0.93 s |
+| 16 | 4.58 | 3.92 | 37.56 s | 1.47 s |
+
+With 8 CPUs, 16 workers were slightly slower than 8 (they take turns). With 12
+CPUs, 8 workers leave 4 CPUs idle, so 16 workers are faster (3.92 s, 7.4 times
+faster than 1 worker); the user and system time grow as the processes take
+turns. I did not test 12 workers.
