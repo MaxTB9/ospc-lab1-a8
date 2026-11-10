@@ -1,31 +1,8 @@
-# Nightly revenue report
+# OSPC team 8 (Operating Systems and Parallel Computing, IE, Fall 2026)
 
-This repository produces the 2025 revenue reports for the Monday management
-meeting. It runs every night on the analytics server.
+| Folder | What |
+|---|---|
+| [`lab1/`](lab1/) | Lab 1, "The Nightly Report" (finished 2 Nov 2026). Run it from inside `lab1/`: `./run_report.sh`. |
+| [`project/`](project/) | Group project: parallel exam timetabling on the HPC cluster (deadline 15 Dec 2026). |
 
-## Input
-
-`~/data/sales_2025.csv`, one line per order (8.4 million orders).
-
-## Outputs
-
-All outputs go to `~/data/out`.
-
-| File | Content | Produced by |
-|---|---|---|
-| `extracts/REGION.csv` | The orders of each region, for the regional managers | `steps/extracts.sh` |
-| `revenue_by_region_month.csv` | Revenue by region and month | `steps/report.py` |
-| `audit_2025.csv` | One line per order with its revenue | `steps/audit.py` |
-| `segments.csv` | Orders per region, quarter and order size | `steps/segments.py` |
-| `stats.csv` | 95% confidence interval of the average order value, per region and month | `steps/stats.sh` |
-
-## Running the report
-
-From the repository folder:
-
-```
-./run_report.sh
-```
-
-The environment variables `DATA` and `OUT` change the input file and the
-output folder. The whole report takes a few minutes.
+Team: Máté Antal, Maximiliano Biatturi, Nikolozi Jorbenadze, Renata Kovács, Abdelaziz Moumen, Zhenyang Rao Xu.
