@@ -1,3 +1,14 @@
+### Abdelaziz — Instance Generator (13 November 2026)
+
+Tool: ChatGPT (OpenAI)
+
+Prompt: "Help me structure code for an exam-timetabling instance generator using NumPy and the project's instance_from_students contract, correct the code and improve its expression."
+
+File: src/generator.py
+
+Purpose: Generate synthetic exam-timetabling instances of different sizes.
+
+Validation: Tested different problem sizes, reproducibility, and clash-free timetable initialization.
 # AI-use log
 
 One entry per piece of AI-assisted code: date, who, tool, file, the main prompt, and how it was checked.
