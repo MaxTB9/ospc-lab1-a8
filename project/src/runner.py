@@ -149,19 +149,25 @@ def run_batch(inst, params, run_ids, workers, schedule="dynamic", chunk=1,
         p.join()
 
     crcs = np.array([r[8] for r in rows], dtype=np.uint32)
+    busy = np.zeros(workers)                 # anneal seconds per worker
+    for r in rows:
+        busy[r[1]] += r[3]
+    imbalance = float(busy.max() / busy.mean()) if busy.mean() > 0 else 1.0
     summary = dict(
         workers=workers, schedule=schedule, chunk=chunk, start_method=method,
         pool_start_s=pool_start_s, init_max_s=max(i[3] for i in infos),
         compute_wall_s=wall_s, total_s=perf_counter() - t_pool,
         anneal_sum_s=sum(r[3] for r in rows), stream_sum_s=sum(r[2] for r in rows),
         checksum=zlib.crc32(crcs.tobytes()), pinned=int(infos[0][2] >= 0),
+        imbalance=imbalance, steps_done_sum=sum(r[7] for r in rows),
         cpus_available=len(cpus), cores_used=cores_used,
         load_before=load_before, load_after=os.getloadavg()[0])
     return summary, rows
 
 
 CSV_COLUMNS = [
-    "version", "instance", "n_exams", "n_students", "n_slots", "runs", "steps",
+    "version", "instance", "n_exams", "n_students", "n_slots", "runs", "steps", "patience",
+    "steps_done_sum", "imbalance",
     "workers", "schedule", "chunk", "start_method", "pinned", "cpus_available",
     "cores_used", "load_before", "load_after", "repeat",
     "pool_start_s", "init_max_s", "compute_wall_s", "total_s", "anneal_sum_s",
@@ -181,6 +187,9 @@ def main():
     ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--runs", type=int, default=32, help="annealing runs per batch")
     ap.add_argument("--steps", type=int, default=200_000)
+    ap.add_argument("--patience", type=int, default=0,
+                    help="stop a run after this many steps without improvement "
+                         "(0 = always run all steps); makes run lengths differ")
     ap.add_argument("--schedule", choices=("static", "dynamic"), default="dynamic")
     ap.add_argument("--chunk", type=int, default=1)
     ap.add_argument("--start-method", choices=("fork", "spawn", "forkserver"))
@@ -192,7 +201,7 @@ def main():
     args = ap.parse_args()
 
     inst = _instance(args)
-    params = Params(max_steps=args.steps)
+    params = Params(max_steps=args.steps, patience=args.patience)
     node, job_id = socket.gethostname(), os.environ.get("SLURM_JOB_ID", "")
     new = not os.path.exists(args.out)
     with open(args.out, "a", newline="") as f:
@@ -205,7 +214,8 @@ def main():
                                  args.schedule, args.chunk, args.start_method)
                 row = dict(s, version=VERSION, instance=inst.name, n_exams=inst.n_exams,
                            n_students=inst.n_students, n_slots=inst.n_slots,
-                           runs=args.runs, steps=args.steps, repeat=repeat, node=node,
+                           runs=args.runs, steps=args.steps, patience=args.patience,
+                           repeat=repeat, node=node,
                            job_id=job_id, date=datetime.datetime.now().isoformat(
                                timespec="seconds"))
                 out.writerow({k: (f"{v:.6f}" if isinstance(v, float) else v)
