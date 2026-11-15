@@ -145,8 +145,10 @@ def initial_timetable(inst):
 
 def make_stream(inst, params, run_id, master_seed=2026):
     """The random numbers of one run. Child run_id of SeedSequence(master_seed), so a
-    run's numbers depend on its run_id only, never on the worker that runs it."""
-    seq = np.random.SeedSequence(master_seed).spawn(run_id + 1)[run_id]
+    run's numbers depend on its run_id only, never on the worker that runs it.
+    spawn_key=(run_id,) builds that child directly; it is the same seed as
+    SeedSequence(master_seed).spawn(run_id + 1)[run_id] but costs O(1), not O(run_id)."""
+    seq = np.random.SeedSequence(master_seed, spawn_key=(run_id,))
     rng = np.random.default_rng(seq)
     n = params.max_steps
     exam = rng.integers(0, inst.n_exams, n, dtype=np.int32)
