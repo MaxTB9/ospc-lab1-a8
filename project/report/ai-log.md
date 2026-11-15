@@ -1,4 +1,12 @@
-### Abdelaziz — Instance Generator (13 November 2026)
+### Abdelaziz — Toronto Data Loader
+
+Tool: ChatGPT (OpenAI)
+
+Prompt: "Help build and improve a Toronto exam-timetabling benchmark downloader and loader using the project's core.py contract, and debug download, indentation and dataset filename problems."
+
+File: project/src/data.py
+
+Validation: Downloaded Toronto Version II, loaded uta-s-92 with 638 exams and 21,329 students, confirmed int32 arrays, and obtained a zero-clash starting timetable.### Abdelaziz — Instance Generator (13 November 2026)
 
 Tool: ChatGPT (OpenAI)
 
