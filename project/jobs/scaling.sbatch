@@ -44,6 +44,9 @@ WLIST=$(echo "$WORKERS" | tr ' ' ',')
 echo "job=${SLURM_JOB_ID:-none} node=$(hostname) date=$(date -Is)"
 echo "python=$(python3 --version 2>&1) numba=$(python3 -c 'import numba; print(numba.__version__)')"
 echo "allowed CPUs: $(nproc), affinity: $(taskset -cp $$ | cut -d: -f2)"
+# Real cores or hyperthreads? Siblings of CPU n are n+256 on these nodes, so a CPU list
+# with both n and n+256 holds hardware threads; the CSV column cores_used counts cores.
+lscpu | grep -E "Model name|^Thread|^Core|^Socket|^CPU\(s\):"
 echo "workers=$WLIST repeats=$REPEATS runs=$RUNS steps=$STEPS schedule=$SCHEDULE chunk=$CHUNK instance=$INSTANCE"
 echo "node load: $(cut -d' ' -f1-3 /proc/loadavg) ($(uptime | sed 's/.*, *\([0-9]* users\).*/\1/'))"
 for w in $WORKERS; do
