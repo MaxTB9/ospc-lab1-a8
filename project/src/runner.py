@@ -112,7 +112,9 @@ def run_batch(inst, params, run_ids, workers, schedule="dynamic", chunk=1,
         raise ValueError("schedule must be 'static' or 'dynamic'")
     method = start_method or ("fork" if sys.platform.startswith("linux") else "spawn")
     ctx = mp.get_context(method)
+    t_prep = perf_counter()
     start = initial_timetable(inst)          # same clash-free start for every run
+    prepare_s = perf_counter() - t_prep      # serial set-up before the pool exists
     cpus = pin_order(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else []
     cores_used = len({_core_of(c) for c in cpus[:workers]})
     load_before = os.getloadavg()[0]         # load of the node (shared with other jobs)
@@ -156,7 +158,7 @@ def run_batch(inst, params, run_ids, workers, schedule="dynamic", chunk=1,
     summary = dict(
         workers=workers, schedule=schedule, chunk=chunk, start_method=method,
         pool_start_s=pool_start_s, init_max_s=max(i[3] for i in infos),
-        compute_wall_s=wall_s, total_s=perf_counter() - t_pool,
+        prepare_s=prepare_s, compute_wall_s=wall_s, total_s=perf_counter() - t_pool,
         anneal_sum_s=sum(r[3] for r in rows), stream_sum_s=sum(r[2] for r in rows),
         checksum=zlib.crc32(crcs.tobytes()), pinned=int(infos[0][2] >= 0),
         imbalance=imbalance, steps_done_sum=sum(r[7] for r in rows),
@@ -171,7 +173,11 @@ CSV_COLUMNS = [
     "workers", "schedule", "chunk", "start_method", "pinned", "cpus_available",
     "cores_used", "load_before", "load_after", "repeat",
     "pool_start_s", "init_max_s", "compute_wall_s", "total_s", "anneal_sum_s",
-    "stream_sum_s", "checksum", "node", "job_id", "date"]
+    "stream_sum_s", "checksum", "node", "job_id", "date",
+    # Phases timed separately (lecture 16). load_s: building/loading the instance, once per
+    # job. prepare_s: clash-free start, before each pool. write_s: writing the PREVIOUS
+    # row (a row cannot contain the time of its own writing; 0 for the first row).
+    "load_s", "prepare_s", "write_s"]
 
 
 def _instance(args):
@@ -200,7 +206,10 @@ def main():
     ap.add_argument("--out", default="../results/runner.csv")
     args = ap.parse_args()
 
+    t_load = perf_counter()
     inst = _instance(args)
+    load_s = perf_counter() - t_load
+    write_s = 0.0
     params = Params(max_steps=args.steps, patience=args.patience)
     node, job_id = socket.gethostname(), os.environ.get("SLURM_JOB_ID", "")
     new = not os.path.exists(args.out)
@@ -215,12 +224,14 @@ def main():
                 row = dict(s, version=VERSION, instance=inst.name, n_exams=inst.n_exams,
                            n_students=inst.n_students, n_slots=inst.n_slots,
                            runs=args.runs, steps=args.steps, patience=args.patience,
-                           repeat=repeat, node=node,
+                           repeat=repeat, node=node, load_s=load_s, write_s=write_s,
                            job_id=job_id, date=datetime.datetime.now().isoformat(
                                timespec="seconds"))
+                t_write = perf_counter()
                 out.writerow({k: (f"{v:.6f}" if isinstance(v, float) else v)
                               for k, v in row.items() if k in CSV_COLUMNS})
                 f.flush()
+                write_s = perf_counter() - t_write
                 print(f"workers={workers} repeat={repeat} pool_start={s['pool_start_s']:.3f}s "
                       f"wall={s['compute_wall_s']:.3f}s checksum={s['checksum']}", flush=True)
 
