@@ -1,0 +1,31 @@
+job=30212 node=haskell date=2026-11-15T16:44:50+01:00
+python=Python 3.11.3 numba=0.58.1
+allowed CPUs: 32, affinity:  21-36,277-292
+workers=1,2,4,8,16 repeats=5 runs=4096 steps=100000 schedule=dynamic chunk=1 instance=toy
+node load: 9.66 5.06 3.84 (0 users)
+workers=1 repeat=0 pool_start=0.153s wall=70.770s checksum=1499360352
+workers=1 repeat=1 pool_start=0.131s wall=71.097s checksum=1499360352
+workers=1 repeat=2 pool_start=0.135s wall=70.932s checksum=1499360352
+workers=1 repeat=3 pool_start=0.147s wall=71.299s checksum=1499360352
+workers=1 repeat=4 pool_start=0.146s wall=71.274s checksum=1499360352
+workers=2 repeat=0 pool_start=0.153s wall=35.896s checksum=1499360352
+workers=2 repeat=1 pool_start=0.143s wall=35.835s checksum=1499360352
+workers=2 repeat=2 pool_start=0.155s wall=35.881s checksum=1499360352
+workers=2 repeat=3 pool_start=0.138s wall=35.863s checksum=1499360352
+workers=2 repeat=4 pool_start=0.153s wall=35.883s checksum=1499360352
+workers=4 repeat=0 pool_start=0.146s wall=18.119s checksum=1499360352
+workers=4 repeat=1 pool_start=0.146s wall=18.146s checksum=1499360352
+workers=4 repeat=2 pool_start=0.154s wall=18.146s checksum=1499360352
+workers=4 repeat=3 pool_start=0.139s wall=18.150s checksum=1499360352
+workers=4 repeat=4 pool_start=0.140s wall=18.073s checksum=1499360352
+workers=8 repeat=0 pool_start=0.145s wall=9.142s checksum=1499360352
+workers=8 repeat=1 pool_start=0.141s wall=9.135s checksum=1499360352
+workers=8 repeat=2 pool_start=0.124s wall=9.133s checksum=1499360352
+workers=8 repeat=3 pool_start=0.124s wall=9.164s checksum=1499360352
+workers=8 repeat=4 pool_start=0.159s wall=9.133s checksum=1499360352
+workers=16 repeat=0 pool_start=0.174s wall=4.631s checksum=1499360352
+workers=16 repeat=1 pool_start=0.176s wall=4.657s checksum=1499360352
+workers=16 repeat=2 pool_start=0.170s wall=4.642s checksum=1499360352
+workers=16 repeat=3 pool_start=0.169s wall=4.678s checksum=1499360352
+workers=16 repeat=4 pool_start=0.171s wall=4.666s checksum=1499360352
+done: ../results/scaling-30212.csv
