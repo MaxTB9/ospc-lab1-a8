@@ -20,3 +20,11 @@ All three COMPLETED. For the CPU-bound proof:
   node-30974.txt).
 MaxRSS of 31049.batch shows 0: the job was too short for sacct to sample memory, so use the
 111 MB maximum from /usr/bin/time -v for that run.
+
+Added during the fresh-clone test (README step 3, small run, 1/2/4 workers, 256 runs, -c 8):
+$ sacct -j 31059 --format=JobID,NodeList,AllocCPUS,Elapsed,TotalCPU,MaxRSS,State
+31059                fortran          8   00:00:10  00:16.608             COMPLETED
+31059.batch          fortran          8   00:00:10  00:16.608          0  COMPLETED
+Whole-job efficiency 16.608 / (10 s x 8 CPUs) = 0.21 (Elapsed is rounded to whole seconds): low
+because the job runs 1, 2 and 4 workers one after another on 8 CPUs, as in the larger jobs.
+The 6 rows of scaling-31059.csv all have checksum 3230756977.
