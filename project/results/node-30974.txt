@@ -1,0 +1,56 @@
+Node evidence for job 30974 (strong-scaling rerun, 16 Nov 2026, workers 1,2,4,8,16,32,64)
+Collected 16 Nov 2026 by Person 4.
+
+== 1. sacct ==
+$ sacct -j 30974 --format=JobID,NodeList,AllocCPUS,Elapsed,TotalCPU,MaxRSS,State
+JobID               NodeList  AllocCPUS    Elapsed   TotalCPU     MaxRSS      State
+------------ --------------- ---------- ---------- ---------- ---------- ----------
+30974                fortran         64   00:06:34  25:54.826             COMPLETED
+30974.batch          fortran         64   00:06:34  25:54.826   6608892K  COMPLETED
+
+Allowed CPUs / affinity (results/slurm-30974.out): 64 CPUs, 26-57,282-313
+
+== 2. lscpu of node fortran (the lines the job prints, results/slurm-30974.out) ==
+CPU(s):                 512
+Model name:             AMD EPYC 9755 128-Core Processor
+Thread(s) per core:     2
+Core(s) per socket:     128
+Socket(s):              2
+
+Same CPU model and layout as haskell (job 30212, see node-30212.txt).
+
+$ cat /sys/devices/system/cpu/cpu26/topology/thread_siblings_list   (run on fortran, job 31040)
+26,282
+
+== 3. CPU efficiency = TotalCPU / (Elapsed x AllocCPUS) ==
+TotalCPU  = 25:54.826 = 1554.826 s
+Elapsed   =  6:34     =  394 s
+AllocCPUS = 64
+Efficiency = 1554.826 / (394 x 64) = 1554.826 / 25216 = 0.062  (6.2 %)
+
+As for job 30212, this is low because of the job's design, not idle workers. The job runs the
+worker counts one after another (1, 2, 4, 8, 16, 32, 64 workers, 5 repeats each) on the same 64
+CPUs, so on average only 1554.826 / 394 = 3.9 CPUs are busy. Inside the runs the workers are busy:
+per run, (anneal time + stream time) / (workers x compute wall time) is 1.00 for 1 to 4 workers,
+0.99 for 8 to 32 workers and 0.98 for 64 workers (from scaling-30974.csv). The work is CPU-bound.
+
+MaxRSS of the batch step: 6608892K (about 6.3 GiB), as reported by sacct.
+
+== 4. Real cores or hyperthreads? ==
+Answer: pairs of hyperthreads. The 64 allocated CPUs are 32 physical cores with 2 hyperthreads each.
+
+- lscpu: 2 threads per core.
+- thread_siblings_list of CPU 26 on fortran is "26,282": CPU 26 and CPU 282 are the two
+  hyperthreads of one core.
+- The affinity 26-57,282-313 is exactly 32 such pairs (26 with 282, 27 with 283, ... 57 with 313;
+  each second number is the first plus 256).
+
+How to read the scaling plot (from scaling-30974.csv, medians of 5 repeats):
+- 1 to 32 workers: pinned=1 and cores_used equals the worker count, so every worker has a
+  physical core to itself. Speedup 30.7 at 32 workers (efficiency 0.96). This is the clean part.
+- 64 workers: cores_used stays 32. Two workers share each core (hyperthread siblings), so this
+  point is not 64 real cores. Speedup 36.5, which is 19 % more than at 32 workers. Counting
+  physical cores, 36.5 / 32 = 1.14: the second hyperthread on each core adds about 14 %.
+  The efficiency 0.57 at 64 workers divides by 64 hyperthreads; divided by the 32 physical cores
+  it is 1.14. Say which one is meant when quoting it.
+- 30212 ran on haskell and 30974 on fortran. Both are AMD EPYC 9755 with the same layout.
