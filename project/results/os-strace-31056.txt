@@ -36,7 +36,7 @@ were made, not 4096.
 (The table in the file continues with a few rarer calls; these 23 lines are the ones kept here.)
 
 == How to read it ==
-- 82 % of the time in system calls is waiting, not work: futex (50 %, locks and the queue
+- 87 % of the time in system calls is waiting, not work: futex (50 %, locks and the queue
   between the main process and the workers) and wait4 (37 %, the main process waiting for the
   workers to finish). Neither uses CPU while it waits.
 - Nothing points at I/O: read and write together are under 1.1 % of the time and write is called
