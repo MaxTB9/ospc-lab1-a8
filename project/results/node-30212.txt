@@ -1,0 +1,68 @@
+Node evidence for job 30212 (first strong-scaling job, 15 Nov 2026, workers 1,2,4,8,16)
+Collected 16 Nov 2026 by Person 4. Dry run of the same file for Monday's job.
+
+== 1. sacct ==
+$ sacct -j 30212 --format=JobID,NodeList,AllocCPUS,Elapsed,TotalCPU,MaxRSS,State
+JobID               NodeList  AllocCPUS    Elapsed   TotalCPU     MaxRSS      State
+------------ --------------- ---------- ---------- ---------- ---------- ----------
+30212                haskell         32   00:11:40  30:37.751             COMPLETED
+30212.batch          haskell         32   00:11:40  30:37.751   1760000K  COMPLETED
+
+Allowed CPUs / affinity (from results/slurm-30212.out): 32 CPUs, 21-36,277-292
+
+== 2. lscpu of node haskell ==
+The job's own output does not have lscpu (the lscpu line was added in commit 3ac6f8e, after this
+job ran). So this is lscpu from a small job on the same node, 30895:
+  sbatch -p cpu -w haskell -n 1 -c 1 -t 2 --wrap "hostname; lscpu; cat .../cpu21/topology/thread_siblings_list"
+(Flags, Vulnerability and cache-flag lines left out here; the rest is as printed.)
+
+Architecture:           x86_64
+CPU(s):                 512
+On-line CPU(s) list:    0-511
+Model name:             AMD EPYC 9755 128-Core Processor
+Thread(s) per core:     2
+Core(s) per socket:     128
+Socket(s):              2
+CPU max MHz:            4122.7549
+CPU min MHz:            1212.5750
+L1d cache:              12 MiB (256 instances)
+L2 cache:               256 MiB (256 instances)
+L3 cache:               1 GiB (32 instances)
+NUMA node(s):           2
+NUMA node0 CPU(s):      0-127,256-383
+NUMA node1 CPU(s):      128-255,384-511
+
+$ cat /sys/devices/system/cpu/cpu21/topology/thread_siblings_list
+21,277
+
+== 3. CPU efficiency = TotalCPU / (Elapsed x AllocCPUS) ==
+TotalCPU = 30:37.751 = 1837.751 s
+Elapsed  = 11:40     =  700 s
+AllocCPUS = 32
+Efficiency = 1837.751 / (700 x 32) = 1837.751 / 22400 = 0.082  (8.2 %)
+
+This number is low because of how the job is built, not because workers were idle. The job runs
+the worker counts one after another (1, 2, 4, 8, 16 workers, 5 repeats each) on the same 32
+CPUs, so on average only 1837.751 / 700 = 2.6 CPUs are busy. Inside the runs the workers are
+busy: per run, (anneal time + stream time) / (workers x compute wall time) is 0.99 for 1 worker
+and 0.99 for 16 workers (from scaling-30212.csv). So the work is CPU-bound; the 8.2 % only says
+the allocation (32 CPUs) is much bigger than what most of the runs use.
+
+== 4. Real cores or hyperthreads? ==
+Answer: pairs of hyperthreads. The 32 allocated CPUs are 16 physical cores with 2 hyperthreads each.
+
+- lscpu: 2 threads per core, 512 CPUs = 256 physical cores.
+- thread_siblings_list of CPU 21 is "21,277": CPU 21 and CPU 277 are the two hyperthreads of one core.
+- The affinity 21-36,277-292 is exactly 16 such pairs: 21 with 277, 22 with 278, ... 36 with 292
+  (each second number is the first plus 256, the pattern shown for CPU 21).
+  The job got both hyperthreads of 16 cores, not 32 separate cores.
+
+What it means for the plots:
+- Up to 16 workers: the runner's own columns say pinned=1 and cores_used equals the worker count
+  (1, 2, 4, 8, 16), so each worker had a physical core to itself. This is the clean part of the scaling plot.
+- A 32-worker point on this same allocation would put two workers on each core (hyperthread
+  siblings, sharing the core's execution units and caches), so it should not be read as 32 real
+  cores. Expect clearly less than 2x the 16-worker speedup. If a job gets 64 CPUs (32 cores),
+  workers up to 32 are on separate cores and only 64 workers use the hyperthreads.
+- Other nodes may differ: the Jupyter node julia is an EPYC 9745, haskell is an EPYC 9755
+  (same layout, 2 threads per core). Check lscpu and the affinity for each job.
