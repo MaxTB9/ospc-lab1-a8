@@ -1,0 +1,44 @@
+OS characterisation: /usr/bin/time -v on one batch run (job 31049, 16 Nov 2026)
+Collected by Person 4. Node haskell, 4 CPUs requested (-c 4), 4 workers.
+
+== Command (submitted from project/src, results kept in the home folder) ==
+sbatch -p cpu -n 1 -c 4 -t 10 -o ~/time-v-4w-%j.out --wrap "/usr/bin/time -v /data/software/envs/ospc/bin/python runner.py --workers 4 --repeats 1 --runs 4096 --steps 100000 --out ~/time-v-4w.csv"
+
+== Output of runner and /usr/bin/time -v ==
+workers=4 repeat=0 pool_start=0.255s wall=16.913s checksum=1499360352
+        User time (seconds): 67.29
+        System time (seconds): 1.42
+        Percent of CPU this job got: 392%
+        Elapsed (wall clock) time (h:mm:ss or m:ss): 0:17.51
+        Maximum resident set size (kbytes): 111280
+        Major (requiring I/O) page faults: 10
+        Minor (reclaiming a frame) page faults: 1622880
+        Voluntary context switches: 24847
+        Involuntary context switches: 17174
+        Swaps: 0
+        File system inputs: 0
+        File system outputs: 16
+        Socket messages sent: 0
+        Socket messages received: 0
+        Signals delivered: 0
+        Page size (bytes): 4096
+        Exit status: 0
+(The lines that were 0 or fixed in the full output, such as the average memory sizes, are left out.)
+
+$ sacct -j 31049 --format=JobID,State,Elapsed,ExitCode
+31049         COMPLETED   00:00:17      0:0
+31049.batch   COMPLETED   00:00:17      0:0
+
+== What it shows ==
+- CPU-bound: (user 67.29 + system 1.42) / elapsed 17.51 = 3.92 CPUs busy = the 392 % reported,
+  with 4 workers. Only 2 % of the CPU time (1.42 s of 68.7 s) is spent in the kernel.
+- No waiting on storage or memory: 0 swaps, 0 file system inputs, 10 major page faults, 16 output
+  blocks (the small CSV). No sockets, no signals.
+- Same result as the scaling jobs: checksum 1499360352 for 4096 runs, on node haskell
+  (job 30974 on fortran gave the same value).
+- Max resident set size 111 MB is the largest single process, not the sum of the 4 workers
+  (it is not comparable with the MaxRSS that sacct gives for a whole job).
+
+== Not a usable measurement: the first try, job 31047 ==
+Same command with --runs 16: 0.69 s elapsed, 201 % CPU. Too short, startup dominates (pool start
+0.257 s, Python and Numba imports). Not used.
