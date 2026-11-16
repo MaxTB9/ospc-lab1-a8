@@ -1,0 +1,22 @@
+sacct lines for every job so far (16 Nov 2026), collected by Person 4
+
+$ sacct -j 30212,30974,31049 --format=JobID,NodeList,AllocCPUS,Elapsed,TotalCPU,MaxRSS,State
+JobID               NodeList  AllocCPUS    Elapsed   TotalCPU     MaxRSS      State
+------------ --------------- ---------- ---------- ---------- ---------- ----------
+30212                haskell         32   00:11:40  30:37.751             COMPLETED
+30212.batch          haskell         32   00:11:40  30:37.751   1760000K  COMPLETED
+30974                fortran         64   00:06:34  25:54.826             COMPLETED
+30974.batch          fortran         64   00:06:34  25:54.826   6608892K  COMPLETED
+31049                haskell          4   00:00:17  01:08.717             COMPLETED
+31049.batch          haskell          4   00:00:17  01:08.717          0  COMPLETED
+
+30212: first strong-scaling job, 1 to 16 workers. 30974: rerun, 1 to 64 workers.
+31049: /usr/bin/time -v run, 4 workers (os-time-v-31049.txt).
+All three COMPLETED. For the CPU-bound proof:
+- 31049: TotalCPU 68.717 s = user 67.29 + system 1.42 from /usr/bin/time -v, so sacct and time agree.
+  68.717 / (17.51 s x 4 CPUs) = 0.98: the 4 CPUs were busy for the whole job.
+- 30212 and 30974 have a low whole-job efficiency (8.2 % and 6.2 %) because they run the worker
+  counts one after another on the full allocation, not because workers idle (node-30212.txt,
+  node-30974.txt).
+MaxRSS of 31049.batch shows 0: the job was too short for sacct to sample memory, so use the
+111 MB maximum from /usr/bin/time -v for that run.
