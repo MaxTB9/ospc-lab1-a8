@@ -1,0 +1,46 @@
+job=30974 node=fortran date=2026-11-16T15:28:17+01:00
+python=Python 3.11.3 numba=0.58.1
+allowed CPUs: 64, affinity:  26-57,282-313
+CPU(s):                                  512
+Model name:                              AMD EPYC 9755 128-Core Processor
+Thread(s) per core:                      2
+Core(s) per socket:                      128
+Socket(s):                               2
+workers=1,2,4,8,16,32,64 repeats=5 runs=4096 steps=100000 schedule=dynamic chunk=1 instance=toy
+node load: 4.32 6.09 6.45 (0 users)
+workers=1 repeat=0 pool_start=0.138s wall=36.850s checksum=1499360352
+workers=1 repeat=1 pool_start=0.103s wall=36.887s checksum=1499360352
+workers=1 repeat=2 pool_start=0.116s wall=37.051s checksum=1499360352
+workers=1 repeat=3 pool_start=0.119s wall=36.884s checksum=1499360352
+workers=1 repeat=4 pool_start=0.130s wall=37.001s checksum=1499360352
+workers=2 repeat=0 pool_start=0.124s wall=18.416s checksum=1499360352
+workers=2 repeat=1 pool_start=0.121s wall=18.412s checksum=1499360352
+workers=2 repeat=2 pool_start=0.131s wall=18.433s checksum=1499360352
+workers=2 repeat=3 pool_start=0.121s wall=18.419s checksum=1499360352
+workers=2 repeat=4 pool_start=0.121s wall=18.418s checksum=1499360352
+workers=4 repeat=0 pool_start=0.126s wall=9.242s checksum=1499360352
+workers=4 repeat=1 pool_start=0.137s wall=9.247s checksum=1499360352
+workers=4 repeat=2 pool_start=0.123s wall=9.248s checksum=1499360352
+workers=4 repeat=3 pool_start=0.123s wall=9.257s checksum=1499360352
+workers=4 repeat=4 pool_start=0.119s wall=9.252s checksum=1499360352
+workers=8 repeat=0 pool_start=0.130s wall=4.738s checksum=1499360352
+workers=8 repeat=1 pool_start=0.112s wall=4.734s checksum=1499360352
+workers=8 repeat=2 pool_start=0.110s wall=4.735s checksum=1499360352
+workers=8 repeat=3 pool_start=0.109s wall=4.735s checksum=1499360352
+workers=8 repeat=4 pool_start=0.144s wall=4.765s checksum=1499360352
+workers=16 repeat=0 pool_start=0.165s wall=2.394s checksum=1499360352
+workers=16 repeat=1 pool_start=0.148s wall=2.387s checksum=1499360352
+workers=16 repeat=2 pool_start=0.146s wall=2.381s checksum=1499360352
+workers=16 repeat=3 pool_start=0.145s wall=2.382s checksum=1499360352
+workers=16 repeat=4 pool_start=0.146s wall=2.383s checksum=1499360352
+workers=32 repeat=0 pool_start=0.158s wall=1.200s checksum=1499360352
+workers=32 repeat=1 pool_start=0.163s wall=1.200s checksum=1499360352
+workers=32 repeat=2 pool_start=0.157s wall=1.200s checksum=1499360352
+workers=32 repeat=3 pool_start=0.157s wall=1.200s checksum=1499360352
+workers=32 repeat=4 pool_start=0.155s wall=1.200s checksum=1499360352
+workers=64 repeat=0 pool_start=0.252s wall=1.016s checksum=1499360352
+workers=64 repeat=1 pool_start=0.251s wall=1.005s checksum=1499360352
+workers=64 repeat=2 pool_start=0.269s wall=1.009s checksum=1499360352
+workers=64 repeat=3 pool_start=0.276s wall=1.016s checksum=1499360352
+workers=64 repeat=4 pool_start=0.322s wall=1.012s checksum=1499360352
+done: ../results/scaling-30974.csv
