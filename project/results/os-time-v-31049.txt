@@ -42,3 +42,18 @@ $ sacct -j 31049 --format=JobID,State,Elapsed,ExitCode
 == Not a usable measurement: the first try, job 31047 ==
 Same command with --runs 16: 0.69 s elapsed, 201 % CPU. Too short, startup dominates (pool start
 0.257 s, Python and Numba imports). Not used.
+
+== Why this run is slower than the 4-worker point of job 30974 ==
+Compute time 16.9 s here against 9.25 s (median) in job 30974: 1.83 times slower. The same work cost
+about 36.8 CPU-seconds of worker time at 1, 2 and 4 workers in job 30974 (scaling-30974.csv), but
+67.3 s of user time here.
+
+Cause: -c 4 does not give 4 physical cores. Slurm counts every hardware thread as a CPU. Job 31053
+(same request, -c 4, on haskell) printed:
+  Cpus_allowed_list:      30-31,286-287
+CPU 30 pairs with 286 and 31 with 287 (second number = first + 256, the hyperthread pairing found
+in node-30212.txt and node-30974.txt). So the 4 CPUs are 2 physical cores with 2 hyperthreads each,
+and the 4 workers ran two to a core. The slowdown fits: 4 workers on 2 cores with hyperthreads
+should give about 2 x 1.14 = 2.3 core-equivalents instead of 4, a factor of about 1.75; measured 1.83.
+
+For 4 workers on 4 separate physical cores, ask for -c 8.
