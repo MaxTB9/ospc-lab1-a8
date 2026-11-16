@@ -1,0 +1,53 @@
+OS characterisation: strace -c on one batch run (job 31056, 16 Nov 2026)
+Collected by Person 4. Node haskell, 8 CPUs requested (-c 8: 4 physical cores), 4 workers.
+
+== Command ==
+sbatch --wait -p cpu -n 1 -c 8 -t 10 -o ~/strace-4w.out --wrap "strace -c -f -o ~/strace-4w.txt /data/software/envs/ospc/bin/python runner.py --workers 4 --repeats 1 --runs 256 --steps 100000 --out ~/strace-4w.csv"
+-f follows the worker processes. strace slows the program down, so the run is small (256 runs)
+and its timing is not used. Checksum 3230756977 differs from the other jobs only because 256 runs
+were made, not 4096.
+
+== Output (strace-4w.txt, the top 23 lines, sorted by time in the call) ==
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ------------------
+ 50.06    0.398763         152      2610       370 futex
+ 37.33    0.297355       29735        10           wait4
+  4.02    0.032023          11      2690       359 openat
+  2.60    0.020743           4      4863       490 stat
+  1.26    0.010056           2      3870           munmap
+  1.16    0.009220           2      4498           mmap
+  1.03    0.008170           1      5196           read
+  0.60    0.004809           1      4356           fstat
+  0.47    0.003747           0      4059           lseek
+  0.39    0.003072           1      2374           close
+  0.30    0.002359         589         4           clone
+  0.24    0.001881           0      2040      2038 ioctl
+  0.16    0.001274           1       835           brk
+  0.12    0.000934           3       260         1 poll
+  0.11    0.000864           2       362           getdents64
+  0.05    0.000375           2       170           mprotect
+  0.03    0.000262         262         1           execve
+  0.02    0.000155           0       531           write
+  0.01    0.000078           1        73           getpid
+  0.01    0.000057           6         9           clone3
+  0.01    0.000046           0        51        46 newfstatat
+  0.00    0.000037           3        11           pipe2
+  0.00    0.000034           2        16           lstat
+(The table in the file continues with a few rarer calls; these 23 lines are the ones kept here.)
+
+== How to read it ==
+- 82 % of the time in system calls is waiting, not work: futex (50 %, locks and the queue
+  between the main process and the workers) and wait4 (37 %, the main process waiting for the
+  workers to finish). Neither uses CPU while it waits.
+- Nothing points at I/O: read and write together are under 1.1 % of the time and write is called
+  only 531 times (the small CSV and the printed lines). No sockets or network calls appear.
+- Most of the other calls (openat, stat, mmap, fstat, read, lseek, close: about 28,000 of the 39,000
+  calls listed) look like Python and Numba start-up, loading modules and the Numba cache, in the
+  main process and the 4 workers. The errors on openat, stat and ioctl are failed lookups while
+  Python searches its paths and checks whether a file is a terminal; they are harmless.
+- futex: 2610 calls for 256 runs is about 10 per run, the cost of handing each run to a worker
+  through the queue (chunk size 1). That cost is small next to a run (about 9 ms) but is the part
+  that grows with the number of runs.
+- The 100,000 annealing steps of a run make no system calls: the solver runs inside Numba.
+  This table cannot separate start-up from solving; a run with more runs would show whether the
+  counts stay the same.
