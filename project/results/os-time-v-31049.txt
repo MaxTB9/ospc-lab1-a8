@@ -57,3 +57,18 @@ and the 4 workers ran two to a core. The slowdown fits: 4 workers on 2 cores wit
 should give about 2 x 1.14 = 2.3 core-equivalents instead of 4, a factor of about 1.75; measured 1.83.
 
 For 4 workers on 4 separate physical cores, ask for -c 8.
+
+== Confirmation with 4 physical cores: job 31061 (-c 8), run during the fresh-clone test ==
+Same command as job 31049 but with -c 8 (4 workers on 4 physical cores), node haskell:
+                               -c 4 (job 31049)   -c 8 (job 31061)
+  compute wall time (runner)        16.91 s           10.27 s
+  elapsed (time -v)                 17.51 s           10.83 s
+  user time                         67.29 s           41.09 s
+  system time                        1.42 s            0.94 s
+  percent of CPU                      392 %             387 %
+  swaps / major page faults          0 / 10            0 / 1
+  checksum                      1499360352        1499360352
+With 4 separate cores the 4096 runs cost 41.1 s of user time, close to the 36.8 s of worker time in
+job 30974; with 2 cores shared by 4 workers they cost 67.3 s. Both runs are CPU-bound (about 390 %),
+so the difference is the hyperthread sharing, not waiting. (10.27 s here against 9.25 s in job 30974:
+a different node, haskell against fortran, with other users on it.)
